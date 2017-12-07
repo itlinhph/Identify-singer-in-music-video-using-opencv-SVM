@@ -8,8 +8,8 @@ from skimage import color
 rawPath = 'rawdata/'
 outputPath = 'output/'
 
-dirs = ['1/']
-# dirs = ['1/','2/','3/','4/','5/','6/','7/','8/']
+# dirs = ['1/']
+dirs = ['1/','2/','3/','4/','5/','6/','7/','8/']
 imgDataFinal =[]
 
 def faceDetectAndResizeImg():
@@ -18,13 +18,13 @@ def faceDetectAndResizeImg():
         path = rawPath + dir
         for imgfile in os.listdir(path):
             if os.path.isfile(path+ imgfile):
-                img = io.imread(path + imgfile)
+                img = cv2.imread(path + imgfile)
                 name, ext = os.path.splitext(imgfile)
                 # Detect Faces
                 faces = faceDetect.detectMultiScale(img)
-                print(path+name+ext)
+                # print(path+name+ext)
                 if (isinstance(faces, tuple) ):
-                    print('Cannot Detect!')
+                    # print('Cannot Detect!')
                     continue
                 x,y,w,h = faces[0][:4]
                 faceCrop = img[y:y + h, x:x + w]
@@ -58,14 +58,6 @@ def faceToVetor():
 faceToVetor()
 
 
-# print(len(imgDataFinal))
-# dst = np.zeros([len(imgDataFinal), 32, 32, 3], dtype=float)
-# for i in range(0, len(imgDataFinal)):
-#    dst[i, :, :, :] = imgDataFinal[i]
-# print(type(imgDataFinal))
-# print(type(dst))
 
-# # print(imgDataFinal[0].shape)
-# print(dst[0, :, :, :])
 
 
