@@ -5,13 +5,14 @@ from PIL import Image
 from skimage import io
 from skimage import color
 
-rawPath = '/media/linhphan/LEARN/CNTT 2/IS YEAR 4 SEMESTER 1/ML- KhoatTQ/BTL/rawdata/'
-resizePath = '/media/linhphan//CNTT 2/IS YEAR 4 SEMESTER 1/ML- KhoatTQ/BTL/resizedata/'
+rawPath = 'rawdata/'
+outputPath = 'output/'
+
 dirs = ['1/']
 # dirs = ['1/','2/','3/','4/','5/','6/','7/','8/']
 imgDataFinal =[]
 
-def resizeImg():
+def faceDetectAndResizeImg():
     faceDetect = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
     for dir in dirs:
         path = rawPath + dir
@@ -19,36 +20,52 @@ def resizeImg():
             if os.path.isfile(path+ imgfile):
                 img = io.imread(path + imgfile)
                 name, ext = os.path.splitext(imgfile)
-                
-                # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-                # faces = faceDetect.detectMultiScale(gray, 1.3, 5)
+                # Detect Faces
                 faces = faceDetect.detectMultiScale(img)
-                print(type(faces))
                 print(path+name+ext)
                 if (isinstance(faces, tuple) ):
-                    print('delete!')
-                    # print(faces.shape)
+                    print('Cannot Detect!')
                     continue
-                # print(faces)
-                print(faces.shape)
-                x,y = faces[0][:2]
-                cropped = img[y: y+32, x: x+32]
-                if(cropped.shape != (32, 32, 3)):
+                x,y,w,h = faces[0][:4]
+                faceCrop = img[y:y + h, x:x + w]
+                croppedImg = cv2.resize(faceCrop, (32,32))
+                cv2.imwrite(outputPath + dir + name + ext, croppedImg)
+
+    print('Face recognize Complete!')
+
+
+def faceToVetor():
+    imgData =[]
+    for dir in dirs:
+        path = outputPath + dir
+        for imgfile in os.listdir(path):
+            if os.path.isfile(path + imgfile):
+                img = io.imread(path + imgfile, as_grey=True)
+                name, ext = os.path.splitext(imgfile)
+                if(img.shape != (32, 32)):
+                    print('Remove: '+ path+name+ext)
                     continue
-                print(cropped.shape)
-                imgDataFinal.append(cropped)
-                # imgresize = cropped.resize((32,32))
-                # cropped.save(resizePath+dir+name+ext)
+                imgData.append(img)
+    imgDataFinal = np.array(imgData)
+    print(imgDataFinal.shape)
+    print(imgDataFinal[0])
+    train = imgDataFinal.reshape(len(imgDataFinal), 32*32)
+    print(train.shape)
+    print(train[0])
 
-resizeImg()
-print(len(imgDataFinal))
-dst = np.zeros([len(imgDataFinal), 32, 32, 3], dtype=float)
-for i in range(0, len(imgDataFinal)):
-   dst[i, :, :, :] = imgDataFinal[i]
-print(type(imgDataFinal))
-print(type(dst))
 
-# print(imgDataFinal[0].shape)
-print(dst[0, :, :, :])
+# faceDetectAndResizeImg()
+faceToVetor()
+
+
+# print(len(imgDataFinal))
+# dst = np.zeros([len(imgDataFinal), 32, 32, 3], dtype=float)
+# for i in range(0, len(imgDataFinal)):
+#    dst[i, :, :, :] = imgDataFinal[i]
+# print(type(imgDataFinal))
+# print(type(dst))
+
+# # print(imgDataFinal[0].shape)
+# print(dst[0, :, :, :])
 
 
