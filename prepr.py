@@ -11,6 +11,7 @@ outputPath = 'output/'
 # dirs = ['1/']
 dirs = ['1/','2/','3/','4/','5/','6/','7/','8/']
 imgDataFinal =[]
+label = []
 
 def faceDetectAndResizeImg():
     faceDetect = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
@@ -46,12 +47,22 @@ def faceToVetor():
                     print('Remove: '+ path+name+ext)
                     continue
                 imgData.append(img)
+                Y_label = dirs.index(dir)
+                label.append(Y_label)
+                
     imgDataFinal = np.array(imgData)
+    Y_train = np.array(label)
     print(imgDataFinal.shape)
-    print(imgDataFinal[0])
-    train = imgDataFinal.reshape(len(imgDataFinal), 32*32)
-    print(train.shape)
-    print(train[0])
+    X_train = imgDataFinal.reshape(len(imgDataFinal), 32*32)
+    print(X_train.shape)
+    print(Y_train.shape)
+    print(len(label))
+
+
+
+# def writeVector():
+
+
 
 
 # faceDetectAndResizeImg()
