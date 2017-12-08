@@ -3,7 +3,6 @@ import os, sys
 import cv2
 from PIL import Image
 from skimage import io
-from skimage import color
 
 rawPath = 'rawdata/'
 outputPath = 'output/'
@@ -52,17 +51,20 @@ def faceToVetor():
                 
     imgDataFinal = np.array(imgData)
     Y_train = np.array(label)
-    print(imgDataFinal.shape)
+    # print(imgDataFinal.shape)
     X_train = imgDataFinal.reshape(len(imgDataFinal), 32*32)
+    X_train = np.round(X_train,4)
     print(X_train.shape)
     print(Y_train.shape)
-    print(len(label))
+    fileWrite = open('vector.txt', 'w')
+    for i in range(0, len(imgDataFinal)):
+        fileWrite.write(str(Y_train[i]) + ' ')
+        for i2 in range(0,1024):
+            fileWrite.write(str(i2)+':'+str(X_train[i][i2])+' ')
 
-
-
-# def writeVector():
-
-
+        fileWrite.write('\n')
+    fileWrite.close()
+    print('Save vector complete!')
 
 
 # faceDetectAndResizeImg()
