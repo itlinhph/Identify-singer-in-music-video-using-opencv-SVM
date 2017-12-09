@@ -6,8 +6,6 @@ from skimage import io
 from sklearn import svm
 from sklearn.svm import NuSVC
 
-rawPath = 'rawdata/'
-outputPath = 'output/'
 
 def faceDetectAndResizeImg(inRawPath, outFacePath):
     faceDetect = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
@@ -49,12 +47,13 @@ def faceToVetor(inFacePath):
                     continue
                 listImgFace.append(img)
                 Y_label = listDirs.index(subDir)
+                # Y_label = subDir #This line for show Y_train by name
                 listLabel.append(Y_label)
                 
     imgDataFinal = np.array(listImgFace)
     Y_train = np.array(listLabel)
     X_train = imgDataFinal.reshape(len(imgDataFinal), 32*32)
-    # X_train = np.round(X_train,5)
+    # X_train = np.round(X_train,5) 
     print(X_train.shape)
     print(Y_train.shape)
 
@@ -70,15 +69,16 @@ def writeVector(faceDetectedPath, fileVectorPath):
 
         fileWrite.write('\n')
     fileWrite.close()
-    print('Save vector complete!')
+    print('---SAVE VECTOR COMPLETE!---')
 
-def testASample(imgFile)
+# def testASample(imgFile):
+
 
 def train(trainPath, testPath):
     X_train, Y_train = faceToVetor(trainPath)
 
-    faceDetectAndResizeImg(testPath, 'testFace/')
-    X_test, Y_test = faceToVetor('testFace/')
+    # faceDetectAndResizeImg(testPath, 'face/testFace/')
+    X_test, Y_test = faceToVetor('face/testFace/')
     # clf = svm.SVC()
     clf = NuSVC()
     print(clf.fit(X_train, Y_train))
@@ -89,14 +89,27 @@ def train(trainPath, testPath):
 
     print('Y Test:')
     print(Y_test)
-    print('Y pre:')
+    print('Y predict:')
     print(Y_pre)
+    numTest = len(Y_test)
+    testTrue = 0
+    for x in range(0, numTest):
+        if (Y_pre[x] == Y_test[x]):
+            testTrue+=1
+    print('Test True: ', testTrue, '/', numTest,'=', round(float(testTrue/numTest*100),3), '%')
     
 
-# faceDetectAndResizeImg('rawdata/', 'output/')
-# faceToVetor('output/', )
-# writeVector('output/', 'vector.txt')
-train('output/', 'test/')
+# faceDetectAndResizeImg('train/', 'face/trainFace/')
+# faceDetectAndResizeImg('validation/', 'face/valiFace/')
+# faceDetectAndResizeImg('test/', 'face/testFace/')
+
+# faceToVetor('face/trainFace/')
+
+# writeVector('face/trainFace/', 'vectorTrain.txt')
+# writeVector('face/valiFace/', 'vectorVali.txt')
+# writeVector('face/testFace/', 'vectorTest.txt')
+
+train('trainFace/', 'test/')
 
 
 
