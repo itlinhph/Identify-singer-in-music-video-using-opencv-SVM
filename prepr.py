@@ -4,20 +4,18 @@ import cv2
 from PIL import Image
 from skimage import io
 from sklearn import svm
+from sklearn.svm import NuSVC
 
 rawPath = 'rawdata/'
 outputPath = 'output/'
 
-# dirs = ['1/']
-imgDataFinal =[]
-
-def faceDetectAndResizeImg(inputDir):
+def faceDetectAndResizeImg(inRawPath, outFacePath):
     faceDetect = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 
-    print('STARTING DETECT AND RESIZE FACE...\n')
-    listDirs = os.listdir(inputDir)
+    print('\n---STARTING DETECT AND RESIZE FACE---')
+    listDirs = os.listdir(inRawPath)
     for subDir in listDirs:
-        path = inputDir + subDir + '/'
+        path = inRawPath + subDir + '/'
         for imgfile in os.listdir(path):
             if os.path.isfile(path+ imgfile):
                 img = cv2.imread(path + imgfile)
@@ -30,19 +28,19 @@ def faceDetectAndResizeImg(inputDir):
                 x,y,w,h = faces[0][:4]
                 faceCrop = img[y:y + h, x:x + w]
                 croppedImg = cv2.resize(faceCrop, (32,32))
-                if not os.path.exists(outputPath+subDir):
-                    os.makedirs(outputPath + subDir)
-                cv2.imwrite(outputPath + subDir +'/'+ imgfile , croppedImg)
+                if not os.path.exists(outFacePath+subDir):
+                    os.makedirs(outFacePath + subDir)
+                cv2.imwrite(outFacePath + subDir +'/'+ imgfile , croppedImg)
 
-    print('Face recognize Complete!')
+    print('---FACE REGCONIZE COMPLETE!---\n')
 
 
-def faceToVetor(inputDir):
+def faceToVetor(inFacePath):
     listImgFace =[]
     listLabel = []
-    listDirs = os.listdir(inputDir)
+    listDirs = os.listdir(inFacePath)
     for subDir in listDirs:
-        path = inputDir + subDir + '/'
+        path = inFacePath + subDir + '/'
         for imgfile in os.listdir(path):
             if os.path.isfile(path + imgfile):
                 img = io.imread(path + imgfile, as_grey=True)
@@ -62,9 +60,9 @@ def faceToVetor(inputDir):
 
     return X_train, Y_train
     
-def writeVector():
-    X_train, Y_train = faceToVetor(outputPath)
-    fileWrite = open('vector.txt', 'w')
+def writeVector(faceDetectedPath, fileVectorPath):
+    X_train, Y_train = faceToVetor(faceDetectedPath)
+    fileWrite = open(fileVectorPath, 'w')
     for i in range(0, len(Y_train)):
         fileWrite.write(str(Y_train[i]) + ' ')
         for i2 in range(0, 1024):
@@ -74,14 +72,18 @@ def writeVector():
     fileWrite.close()
     print('Save vector complete!')
 
+def testASample(imgFile)
 
-def train():
-    X_train, Y_train = faceToVetor(outputPath)
-    X_test, Y_test = faceToVetor('test/')
-    clf = svm.SVC()
+def train(trainPath, testPath):
+    X_train, Y_train = faceToVetor(trainPath)
+
+    faceDetectAndResizeImg(testPath, 'testFace/')
+    X_test, Y_test = faceToVetor('testFace/')
+    # clf = svm.SVC()
+    clf = NuSVC()
     print(clf.fit(X_train, Y_train))
     
-    print('train complete!')
+    print('---TRAIN COMPLETE!---\n')
     Y_pre = clf.predict(X_test)
     print(clf.support_vectors_)
 
@@ -91,10 +93,10 @@ def train():
     print(Y_pre)
     
 
-# faceDetectAndResizeImg(rawPath)
-# faceToVetor(outputPath)
-# writeVector()
-train()
+# faceDetectAndResizeImg('rawdata/', 'output/')
+# faceToVetor('output/', )
+# writeVector('output/', 'vector.txt')
+train('output/', 'test/')
 
 
 
