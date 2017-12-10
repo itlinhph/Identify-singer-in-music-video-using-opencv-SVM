@@ -6,8 +6,12 @@ from skimage import io
 from sklearn import svm
 from sklearn.svm import NuSVC
 
-def renameData(inFolder, outFolder):
-    print('---RENAME FILE---')
+def renameAndDivideData(inFolder, outFolder, indexDivide):
+    print('---RENAME AND DIVIDE FILE TO TRAIN, TEST, VALIDATION---')
+    
+    train  = indexDivide[0]
+    test = indexDivide[1]
+
     listDirs = os.listdir(inFolder)
     for subDir in listDirs:
         number = 1
@@ -16,15 +20,23 @@ def renameData(inFolder, outFolder):
             img = cv2.imread(path+imgfile)
             name,ext = os.path.splitext(imgfile)
             print(path + imgfile)
-            if not os.path.exists(outFolder + subDir):
-                os.makedirs(outFolder + subDir)
+            if(number <=train):
+                pathOut = outFolder + 'train/' + subDir
+            elif(number >train and number<=test):
+                pathOut = outFolder + 'test/' + subDir
+            else:
+                pathOut = outFolder + 'valid/' + subDir
+
+            if not os.path.exists(pathOut):
+                os.makedirs(pathOut)
             try:
-                cv2.imwrite(outFolder + subDir + '/' + str(number) + ext, img)
+                cv2.imwrite(pathOut + '/' + str(number) + ext, img)
                 number+=1
             except Exception as ex:
                 print('Cannot save: ' + path + imgfile)
             
-    print('---RENAME COMPLETE---')
+    print('---RENAME AND DIVIDE COMPLETED---')
+
 
 def faceDetectAndResizeImg(inRawPath, outFacePath):
     faceDetect = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
@@ -141,16 +153,16 @@ def train(trainPath, testPath):
     print('Test True: ', testTrue, '/', numTest,'=', round(float(testTrue/numTest*100),3), '%')
     
 
-renameData('rawdata/', 'renameData/')
-# faceDetectAndResizeImg('train/', 'face/trainFace/')
-# faceDetectAndResizeImg('validation/', 'face/valiFace/')
-# faceDetectAndResizeImg('test/', 'face/testFace/')
+renameAndDivideData('rawdata/', 'dataDivided/', [240,250])
+faceDetectAndResizeImg('dataDivided/train/', 'face/trainFace/')
+faceDetectAndResizeImg('dataDivided/valid/', 'face/valiFace/')
+faceDetectAndResizeImg('dataDivided/test/', 'face/testFace/')
 
 # faceToVetor('face/trainFace/')
 
-# writeVector('face/trainFace/', 'vectorTrain.txt')
-# writeVector('face/valiFace/', 'vectorVali.txt')
-# writeVector('face/testFace/', 'vectorTest.txt')
+writeVector('face/trainFace/', 'vectorTrain.txt')
+writeVector('face/valiFace/', 'vectorVali.txt')
+writeVector('face/testFace/', 'vectorTest.txt')
 
 # train('/media/linhphan/LEARN/CNTT 2/IS YEAR 4 SEMESTER 1/ML- KhoatTQ/BTL/datasetFace/', 'face/testFace/')
 # testASample('5.jpg')
