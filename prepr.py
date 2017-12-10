@@ -6,6 +6,25 @@ from skimage import io
 from sklearn import svm
 from sklearn.svm import NuSVC
 
+def renameData(inFolder, outFolder):
+    print('---RENAME FILE---')
+    listDirs = os.listdir(inFolder)
+    for subDir in listDirs:
+        number = 1
+        path = inFolder + subDir + '/'
+        for imgfile in os.listdir(path):
+            img = cv2.imread(path+imgfile)
+            name,ext = os.path.splitext(imgfile)
+            print(path + imgfile)
+            if not os.path.exists(outFolder + subDir):
+                os.makedirs(outFolder + subDir)
+            try:
+                cv2.imwrite(outFolder + subDir + '/' + str(number) + ext, img)
+                number+=1
+            except Exception as ex:
+                print('Cannot save: ' + path + imgfile)
+            
+    print('---RENAME COMPLETE---')
 
 def faceDetectAndResizeImg(inRawPath, outFacePath):
     faceDetect = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
@@ -71,14 +90,37 @@ def writeVector(faceDetectedPath, fileVectorPath):
     fileWrite.close()
     print('---SAVE VECTOR COMPLETE!---')
 
-# def testASample(imgFile):
+def testASample(imgfile):
+    faceDetect = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+    img = cv2.imread(imgfile)
+    # Detect Faces
+    faces = faceDetect.detectMultiScale(img)
+    if (isinstance(faces, tuple)):
+        print('CANNOT DETECT FACE: ' + imgfile)
+    else:
+        x, y, w, h = faces[0][:4]
+        faceCrop = img[y:y + h, x:x + w]
+        croppedImg = cv2.resize(faceCrop, (32, 32))
+        cv2.imwrite('face'+imgfile, croppedImg)
+        imgFace = io.imread('face'+imgfile, as_grey=True)
+        X_test = imgFace.reshape(1,32*32)
+        
+        X_train, Y_train = faceToVetor('face/trainFace/')
+        clf = NuSVC()
+        print(clf.fit(X_train, Y_train))
+        Y_pre = clf.predict(X_test)
+        print('Y predict:')
+        print(Y_pre)
+
+
 
 
 def train(trainPath, testPath):
     X_train, Y_train = faceToVetor(trainPath)
 
     # faceDetectAndResizeImg(testPath, 'face/testFace/')
-    X_test, Y_test = faceToVetor('face/testFace/')
+    # X_test, Y_test = faceToVetor('face/testFace/')
+    X_test, Y_test = faceToVetor(testPath)
     # clf = svm.SVC()
     clf = NuSVC()
     print(clf.fit(X_train, Y_train))
@@ -99,6 +141,7 @@ def train(trainPath, testPath):
     print('Test True: ', testTrue, '/', numTest,'=', round(float(testTrue/numTest*100),3), '%')
     
 
+renameData('rawdata/', 'renameData/')
 # faceDetectAndResizeImg('train/', 'face/trainFace/')
 # faceDetectAndResizeImg('validation/', 'face/valiFace/')
 # faceDetectAndResizeImg('test/', 'face/testFace/')
@@ -109,8 +152,8 @@ def train(trainPath, testPath):
 # writeVector('face/valiFace/', 'vectorVali.txt')
 # writeVector('face/testFace/', 'vectorTest.txt')
 
-train('trainFace/', 'test/')
-
+# train('/media/linhphan/LEARN/CNTT 2/IS YEAR 4 SEMESTER 1/ML- KhoatTQ/BTL/datasetFace/', 'face/testFace/')
+# testASample('5.jpg')
 
 
 
