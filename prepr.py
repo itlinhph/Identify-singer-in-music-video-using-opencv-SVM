@@ -6,6 +6,29 @@ from skimage import io
 from sklearn import svm
 from sklearn.svm import NuSVC
 
+
+def renameData(inFolder, outFolder):
+    print('--STARTING RENAME DATA---')
+    listDirs = os.listdir(inFolder)
+    for subDir in listDirs:
+        number = 1
+        path = inFolder + subDir + '/'
+        for imgfile in os.listdir(path):
+            img = cv2.imread(path + imgfile)
+            name, ext = os.path.splitext(imgfile)
+            print(path + imgfile)
+            pathOut = outFolder + subDir
+            if not os.path.exists(pathOut):
+                os.makedirs(pathOut)
+            try:
+                cv2.imwrite(pathOut + '/' + str(number) + ext, img)
+                number += 1
+            except Exception as ex:
+                print('Cannot save: ' + path + imgfile)
+    print('---RENAME COMPETED---\n')
+
+
+
 def renameAndDivideData(inFolder, outFolder, indexDivide):
     print('---RENAME AND DIVIDE FILE TO TRAIN, TEST, VALIDATION---')
     
@@ -54,12 +77,15 @@ def faceDetectAndResizeImg(inRawPath, outFacePath):
                 if (isinstance(faces, tuple) ):
                     print('FALSE: ' + path + imgfile)
                     continue
-                x,y,w,h = faces[0][:4]
-                faceCrop = img[y:y + h, x:x + w]
-                croppedImg = cv2.resize(faceCrop, (32,32))
-                if not os.path.exists(outFacePath+subDir):
-                    os.makedirs(outFacePath + subDir)
-                cv2.imwrite(outFacePath + subDir +'/'+ imgfile , croppedImg)
+                num = ''
+                for x,y,w,h in faces:
+                    if(faces.shape !=(1,4)):
+                        num = num +'a'
+                    faceCrop = img[y:y + h, x:x + w]
+                    croppedImg = cv2.resize(faceCrop, (32,32))
+                    if not os.path.exists(outFacePath+subDir):
+                        os.makedirs(outFacePath + subDir)
+                    cv2.imwrite(outFacePath + subDir +'/'+ num + imgfile , croppedImg)
 
     print('---FACE REGCONIZE COMPLETE!---\n')
 
@@ -90,7 +116,72 @@ def faceToVetor(inFacePath):
 
     return X_train, Y_train
     
-def writeVector(faceDetectedPath, fileVectorPath):
+def writeVector(faceFolder, vectorFolder):
+    
+    faceTrain = []
+    labelTrain = []
+    
+    faceTest = []
+    labelTest = []
+
+    faceValid = []
+    labelValid = []
+
+    listDirs = os.listdir(faceFolder)
+    print('---READING IMAGE---')
+    for subDir in listDirs:
+        path = faceFolder + subDir + '/'
+        for imgfile in os.listdir(path):
+            img = io.imread(path + imgfile, as_grey=True)
+            print(path +imgfile)
+            name, ext = os.path.splitext(imgfile)
+            label = listDirs.index(subDir)
+            if(img.shape != (32,32)):
+                continue
+            if(int(name)%17 ==0):
+                faceTest.append(img)
+                labelTest.append(label)
+            elif(int(name)%5 ==0):
+                faceValid.append(img)
+                labelValid.append(label)
+            else:
+                faceTrain.append(img)
+                labelTrain.append(label)
+    print('---READ IMAGE COMPLETED---\n')
+    XdataTrain = np.array(faceTrain)
+    XdataTest  = np.array(faceTest)
+    XdataValid = np.array(faceValid)
+
+    Xtrain = XdataTrain.reshape(len(XdataTrain), 32*32)
+    Xtest  = XdataTest.reshape(len(XdataTest), 32*32)
+    Xvalid = XdataValid.reshape(len(XdataValid), 32*32)
+
+    Ytrain = np.array(labelTrain)
+    Ytest  = np.array(labelTest)
+    Yvalid = np.array(labelValid)
+    print('   WRITING VECTOR...')
+    if not os.path.exists(vectorFolder):
+        os.makedirs(vectorFolder)
+    print('dataTrain: ', XdataTrain.shape)
+    writeFile(Xtrain, Ytrain, vectorFolder + '/vectortrain')
+    print('dataTest : ', XdataTest.shape)
+    writeFile(Xtest, Ytest, vectorFolder + '/vectortest')
+    print('dataValid: ', XdataValid.shape)
+    writeFile(Xvalid, Yvalid, vectorFolder + '/vectorvalid')
+    print('---SAVE VECTOR COMPLETE!---\n')
+
+
+def writeFile(Xdata, Ylabel, filename):
+    fileWrite = open(filename, 'w')
+    for i in range(0, len(Ylabel)):
+        fileWrite.write(str(Ylabel[i]) + ' ')
+        for i2 in range(0, 1024):
+            fileWrite.write(str(i2) + ':' + str(Xdata[i][i2]) + ' ')
+
+        fileWrite.write('\n')
+    fileWrite.close()
+
+def writeVectorOld(faceFolder, fileVectorPath):
     X_train, Y_train = faceToVetor(faceDetectedPath)
     fileWrite = open(fileVectorPath, 'w')
     for i in range(0, len(Y_train)):
@@ -153,18 +244,24 @@ def train(trainPath, testPath):
     print('Test True: ', testTrue, '/', numTest,'=', round(float(testTrue/numTest*100),3), '%')
     
 
-renameAndDivideData('rawdata/', 'dataDivided/', [240,250])
-faceDetectAndResizeImg('dataDivided/train/', 'face/trainFace/')
-faceDetectAndResizeImg('dataDivided/valid/', 'face/valiFace/')
-faceDetectAndResizeImg('dataDivided/test/', 'face/testFace/')
+# renameData('rawdata/', 'dataset/')
+# faceDetectAndResizeImg('dataset/', 'face/')
+# renameData('facefilter/', 'faceData/')
+writeVector('faceData/', 'vector/')
+
+
+# renameAndDivideData('rawdata/', 'dataDivided/', [240,250])
+# faceDetectAndResizeImg('dataDivided/train/', 'face/trainFace/')
+# faceDetectAndResizeImg('dataDivided/valid/', 'face/valiFace/')
+# faceDetectAndResizeImg('dataDivided/test/', 'face/testFace/')
 
 # faceToVetor('face/trainFace/')
 
-writeVector('face/trainFace/', 'vectorTrain.txt')
-writeVector('face/valiFace/', 'vectorVali.txt')
-writeVector('face/testFace/', 'vectorTest.txt')
+# writeVector('face/trainFace/', 'vectorTrain.txt')
+# writeVector('face/valiFace/', 'vectorVali.txt')
+# writeVector('face/testFace/', 'vectorTest.txt')
 
-# train('/media/linhphan/LEARN/CNTT 2/IS YEAR 4 SEMESTER 1/ML- KhoatTQ/BTL/datasetFace/', 'face/testFace/')
+# train('face/trainFace/', 'face/testFace/')
 # testASample('5.jpg')
 
 
