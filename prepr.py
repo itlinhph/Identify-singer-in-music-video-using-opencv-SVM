@@ -75,17 +75,20 @@ def faceDetectAndResizeImg(inRawPath, outFacePath):
                 faces = faceDetect.detectMultiScale(img)
                 print(path + imgfile)
                 if (isinstance(faces, tuple) ):
-                    print('FALSE: ' + path + imgfile)
+                    # print('FALSE: ' + path + imgfile)
                     continue
                 num = ''
                 for x,y,w,h in faces:
                     if(faces.shape !=(1,4)):
                         num = num +'a'
+                    if(h<120 or w<120):
+                        continue
                     faceCrop = img[y:y + h, x:x + w]
                     croppedImg = cv2.resize(faceCrop, (32,32))
                     if not os.path.exists(outFacePath+subDir):
                         os.makedirs(outFacePath + subDir)
                     cv2.imwrite(outFacePath + subDir +'/'+ num + imgfile , croppedImg)
+                    # cv2.imwrite(outFacePath + subDir +'/'+ num + imgfile , faceCrop)
 
     print('---FACE REGCONIZE COMPLETE!---\n')
 
@@ -121,11 +124,11 @@ def writeVector(faceFolder, vectorFolder):
     faceTrain = []
     labelTrain = []
     
-    faceTest = []
-    labelTest = []
+    # faceTest = []
+    # labelTest = []
 
-    faceValid = []
-    labelValid = []
+    # faceValid = []
+    # labelValid = []
 
     listDirs = os.listdir(faceFolder)
     print('---READING IMAGE---')
@@ -137,37 +140,44 @@ def writeVector(faceFolder, vectorFolder):
             name, ext = os.path.splitext(imgfile)
             label = listDirs.index(subDir)
             if(img.shape != (32,32)):
+                print(img.shape)
                 continue
-            if(int(name)%17 ==0):
-                faceTest.append(img)
-                labelTest.append(label)
-            elif(int(name)%5 ==0):
-                faceValid.append(img)
-                labelValid.append(label)
-            else:
-                faceTrain.append(img)
-                labelTrain.append(label)
+
+            faceTrain.append(img)
+            labelTrain.append(label)
+
+            # if(int(name) ==0):
+            #     faceTest.append(img)
+            #     labelTest.append(label)
+            # elif(int(name) ==-1):
+            #     faceValid.append(img)
+            #     labelValid.append(label)
+            # else:
+            #     faceTrain.append(img)
+            #     labelTrain.append(label)
     print('---READ IMAGE COMPLETED---\n')
     XdataTrain = np.array(faceTrain)
-    XdataTest  = np.array(faceTest)
-    XdataValid = np.array(faceValid)
+    # XdataTest  = np.array(faceTest)
+    # XdataValid = np.array(faceValid)
 
     Xtrain = XdataTrain.reshape(len(XdataTrain), 32*32)
-    Xtest  = XdataTest.reshape(len(XdataTest), 32*32)
-    Xvalid = XdataValid.reshape(len(XdataValid), 32*32)
+    # Xtest  = XdataTest.reshape(len(XdataTest), 32*32)
+    # Xvalid = XdataValid.reshape(len(XdataValid), 32*32)
 
     Ytrain = np.array(labelTrain)
-    Ytest  = np.array(labelTest)
-    Yvalid = np.array(labelValid)
+    # Ytest  = np.array(labelTest)
+    # Yvalid = np.array(labelValid)
     print('   WRITING VECTOR...')
-    if not os.path.exists(vectorFolder):
-        os.makedirs(vectorFolder)
+    # if not os.path.exists(vectorFolder):
+    #     os.makedirs(vectorFolder)
     print('dataTrain: ', XdataTrain.shape)
-    writeFile(Xtrain, Ytrain, vectorFolder + '/vectortrain')
-    print('dataTest : ', XdataTest.shape)
-    writeFile(Xtest, Ytest, vectorFolder + '/vectortest')
-    print('dataValid: ', XdataValid.shape)
-    writeFile(Xvalid, Yvalid, vectorFolder + '/vectorvalid')
+    writeFile(Xtrain, Ytrain, vectorFolder)
+
+    # writeFile(Xtrain, Ytrain, vectorFolder + '/vectorfull')
+    # print('dataTest : ', XdataTest.shape)
+    # writeFile(Xtest, Ytest, vectorFolder + '/vectortest')
+    # print('dataValid: ', XdataValid.shape)
+    # writeFile(Xvalid, Yvalid, vectorFolder + '/vectorvalid')
     print('---SAVE VECTOR COMPLETE!---\n')
 
 
@@ -244,11 +254,24 @@ def train(trainPath, testPath):
     print('Test True: ', testTrue, '/', numTest,'=', round(float(testTrue/numTest*100),3), '%')
     
 
+def predict(fileOutput):
+    # label = np.loadtxt(fileOutput, dtype=int, )
+    outlabel = np.genfromtxt(fileOutput, delimiter='\n').astype(int)
+    # print(outlabel)
+    numlabel = [0,0,0,0,0]
+    for x in outlabel:
+        numlabel[x] +=1
+    maxIndex = max(numlabel)
+    labelPredict = numlabel.index(maxIndex)
+    print(labelPredict)
+
 # renameData('rawdata/', 'dataset/')
 # faceDetectAndResizeImg('dataset/', 'face/')
 # renameData('facefilter/', 'faceData/')
-writeVector('faceData/', 'vector/')
-
+# writeVector('faceData/', 'vectorFull/')
+# faceDetectAndResizeImg('outFrame/', 'outFaceVideo/')
+# writeVector('outFaceVideo/', 'vector/vectorOutFrame')
+predict('testout')
 
 # renameAndDivideData('rawdata/', 'dataDivided/', [240,250])
 # faceDetectAndResizeImg('dataDivided/train/', 'face/trainFace/')
