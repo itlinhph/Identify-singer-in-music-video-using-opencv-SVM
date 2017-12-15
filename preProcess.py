@@ -104,7 +104,7 @@ def writeFile(Xdata, Ylabel, filename):
     fileWrite.close()
 
 # renameData('rawdata/', 'dataset/')
-# faceDetectAndResizeImg('dataset/', 'face/')
+faceDetectAndResizeImg('dataset/', 'face/')
 # renameData('face/', 'faceData/')
 # renameData('facefilter/', 'faceData/')
 writeVector('face/', 'vectorFull')
