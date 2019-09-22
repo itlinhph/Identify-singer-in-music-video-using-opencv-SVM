@@ -52,5 +52,5 @@ File: predictVideo.py
 
 Contact
 -------------------------------------
-> Contact me: https://fb.com/deluxe.psk <br/>
+> Contact me: https://fb.com/linhpph <br/>
 > Email: linhphanhust@gmail.com
